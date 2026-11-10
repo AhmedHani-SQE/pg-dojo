@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PG Dojo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn only-narrow" id="menuBtn" title="Chapters">☰</button>
+    <div class="brand"><span class="logo">🐘</span> PG&nbsp;Dojo</div>
+    <div class="progress" title="Challenges solved">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span id="progressText">0 / 0</span>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="schemaBtn">🗂 <span class="lbl">Schema</span></button>
+      <button class="btn ghost" id="chatBtn">🤖 <span class="lbl">Ask AI</span></button>
+      <button class="btn ghost" id="settingsBtn" title="AI settings">⚙ <span class="lbl">AI settings</span></button>
+      <button class="btn ghost" id="resetBtn" title="Drop everything you created in the playground schema">♻ <span class="lbl">Reset playground</span></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <div class="side-title">Chapters</div>
+      <ol id="chapterList" class="chapter-list"></ol>
+      <div class="side-foot">PostgreSQL 18.6 · Pagila</div>
+    </nav>
+
+    <main class="content" id="content"></main>
+
+    <section class="workbench">
+      <div class="editor-card">
+        <div class="editor-head">
+          <div class="mode" id="editorMode">Scratchpad</div>
+          <div class="editor-buttons">
+            <button class="btn ghost small" id="clearBtn" title="Clear editor">Clear</button>
+            <button class="btn primary" id="runBtn" title="Ctrl + Enter">▶ Run</button>
+            <button class="btn success" id="checkBtn" title="Ctrl + Shift + Enter" disabled>✔ Check</button>
+          </div>
+        </div>
+        <div class="editor-wrap">
+          <pre class="gutter" id="gutter" aria-hidden="true">1</pre>
+          <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="-- write SQL here, then Ctrl + Enter to run"></textarea>
+        </div>
+        <div class="kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> run · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> check</div>
+      </div>
+      <div class="results" id="results">
+        <div class="empty-state">Results show up here. Run something! 🎬</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Schema drawer -->
+  <aside class="drawer" id="schemaDrawer">
+    <div class="drawer-head">
+      <strong>🗂 Schema</strong>
+      <div>
+        <button class="btn ghost small" id="schemaReload">↻</button>
+        <button class="icon-btn" data-close="schemaDrawer">✕</button>
+      </div>
+    </div>
+    <input class="search" id="schemaSearch" placeholder="Filter tables or columns…">
+    <div class="drawer-body" id="schemaBody">Loading…</div>
+  </aside>
+
+  <!-- AI chat drawer -->
+  <aside class="drawer wide" id="chatDrawer">
+    <div class="drawer-head">
+      <strong>🤖 AI tutor <span class="muted small" id="chatModel"></span></strong>
+      <div>
+        <button class="btn ghost small" id="chatClear">Clear</button>
+        <button class="icon-btn" data-close="chatDrawer">✕</button>
+      </div>
+    </div>
+    <div class="chat-context" id="chatContext"></div>
+    <div class="drawer-body chat-body" id="chatBody"></div>
+    <form class="chat-input" id="chatForm">
+      <textarea id="chatText" rows="2" placeholder="Ask anything… (Enter to send, Shift+Enter for new line)"></textarea>
+      <button class="btn primary" type="submit">Send</button>
+    </form>
+  </aside>
+
+  <!-- Settings modal -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-card">
+      <div class="drawer-head"><strong>⚙ AI settings (Groq)</strong><button class="icon-btn" data-close="settingsModal">✕</button></div>
+      <div class="modal-body">
+        <p class="muted">Get a free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>. It's stored only on this laptop (in <code>pg-dojo/config.json</code>) and never sent to the browser.</p>
+        <label>API key <span id="keyStatus" class="pill"></span>
+          <input type="password" id="apiKey" placeholder="gsk_…" autocomplete="off">
+        </label>
+        <label>Model
+          <select id="modelSelect">
+            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (smartest)</option>
+            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (fastest)</option>
+            <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+            <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (tiny)</option>
+          </select>
+        </label>
+        <label class="row"><input type="checkbox" id="autoReview"> Auto AI review every time I press Check</label>
+        <div class="modal-actions">
+          <button class="btn ghost" id="clearKeyBtn">Remove key</button>
+          <button class="btn primary" id="saveSettings">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="scrim" id="scrim"></div>
+  <script src="app.js"></script>
+</body>
+</html>

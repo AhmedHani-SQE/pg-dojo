@@ -1,0 +1,19 @@
+{
+  "name": "pg-dojo",
+  "version": "1.0.0",
+  "description": "Interactive PostgreSQL course: lessons, auto-checked challenges on the Pagila database, and a Groq AI tutor",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js --open",
+    "selftest": "node server.js --selftest"
+  },
+  "keywords": ["postgresql", "sql", "learning", "pagila"],
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  }
+}

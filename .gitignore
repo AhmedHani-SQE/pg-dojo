@@ -1,0 +1,6 @@
+node_modules/
+# holds your Groq API key and local DB password — never commit it
+config.json
+.env
+.claude/
+*.log
